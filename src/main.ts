@@ -10,116 +10,64 @@ The Software is provided “as is”, without warranty of any kind, express or i
 Except as contained in this notice, the name of the <copyright holders> shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization from the author, Gonzague DEFRAITEUR.
 
 */
-function BinaryToInteger(binString: string)
+
+function SortDirectly(array: number[], resArr: number[], level: number = 0)
 {
-  return (parseInt((binString + '').replace(/[^01]/gi, ''), 2));
-}
-
-function IntegerToBinaryArray(value) {
-  var binArr = [];
-  for (var index = 31; index >= 0; --index) {
-    var binKeyIndex = 31 - index;
+  var zeros: number[] = [];
+  var ones: number[] = [];
+  var hasZeros: boolean = false;
+  var hasOnes: boolean = false;
+  for (var i = 0; i < array.length; i++)
+  {
+    var binKeyIndex = 31 - level;
     var binKey = 1 << binKeyIndex;
-    binArr[index] = ((value & binKey) === binKey) ? 1 : 0;
-  }
-  return binArr;
-}
-
-class BinarySortNode {
-  parent: BinarySortNode = undefined;
-  one: BinarySortNode = undefined;
-  zero: BinarySortNode = undefined;
-  value: number;
-  constructor(parent: BinarySortNode, value: number) {
-    this.parent = parent;
-    this.value = value;
-  }
-}
-
-function ComputeTree(parent: BinarySortNode, level: number, binArrays: number[][]) {
-  var zeros: number[][] = [];
-  var ones: number[][] = [];
-  if (level >= 32) {
-    return;
-  }
-  else {
-
-    for (var i = 0; i < binArrays.length; i++) {
-      if (binArrays[i][level] == 0) {
-        zeros.push(binArrays[i]);
-      }
-      else {
-        ones.push(binArrays[i]);
-      }
+    var zeroOne = ((array[i] & binKey) === binKey) ? 1 : 0;
+    if (zeroOne == 1)
+    {
+      hasOnes = true;
+      ones.push(array[i]);
     }
-    if (zeros.length > 0) {
-      var newNode = new BinarySortNode(parent, 0);
-      parent.zero = newNode;
-      ComputeTree(newNode, level + 1, zeros);
+    else
+    {
+        hasZeros = true;
+      zeros.push(array[i]);
     }
-    if (ones.length > 0) {
-      var newNode = new BinarySortNode(parent, 1);
-      parent.one = newNode;
-      ComputeTree(newNode, level + 1, ones);
+  }
+  if (level == 32)
+  {
+    resArr.push(array[0]);
+  }
+  else
+  {
+    if (hasZeros) {
+      SortDirectly(zeros, resArr, level + 1);
+    }
+    if (hasOnes != undefined) {
+      SortDirectly(ones, resArr, level + 1);
     }
   }
 }
 
-
-// maintenant faut savoir itérer dans l'arbre.
-
-function ReadTreeValues(node: BinarySortNode, resArr: number[], tmpArr: string = "X", level: number = 0) {
-  if (tmpArr == "X") {
-    tmpArr = "";
-  }
-  tmpArr = tmpArr.slice();
-  if (node.parent != undefined) {
-    tmpArr += '' + (node.value);
-  }
-  if (level == 32) {
-
-    resArr.push(BinaryToInteger(tmpArr));
-    return;
-  }
-  else {
-    if (node.zero != undefined) {
-      ReadTreeValues(node.zero, resArr, tmpArr, level + 1);
-    }
-    if (node.one != undefined) {
-      ReadTreeValues(node.one, resArr, tmpArr, level + 1);
-    }
-  }
-}
-
-function numberToArrayBuffer(value) {
-  const view = new DataView(new ArrayBuffer(16))
-  for (var index = 15; index >= 0; --index) {
-    view.setUint8(index, value % 256)
-    value = value >> 8;
-  }
-  return view.buffer
-}
 var array = [];
-for (var i = 0; i < 500; i++)
+for (var i = 0; i < 10005000; i++)
 {
   var maxNum = ((1 << 30) - 1);
   var nb = Math.floor(Math.random() * maxNum);
   array.push(nb);
 }
-console.log("source array: \n" + array);
 
-var binArrays = [];
-for (var i = 0; i < array.length; i++) {
-  binArrays.push(IntegerToBinaryArray(array[i]));
-}
-var resArray = [];
-var root = new BinarySortNode(undefined, 0);
+var resArr = [];
 var d = new Date();
 var time = d.getTime();
-ComputeTree(root, 0, binArrays);
-ReadTreeValues(root, resArray);
+SortDirectly(array, resArr);
 var d = new Date();
 var timeNow = d.getTime();
-console.log('\nres array : \n' + resArray);
+console.log("time: " + (timeNow - time));
 
-console.log("\ntime : " + (timeNow - time));
+var d = new Date();
+var timeNow = d.getTime();
+
+array.sort((a, b) => { return (a - b)});
+var d = new Date();
+var newtime = d.getTime();
+console.log("\n time for standard sort: " + (newtime - timeNow));
